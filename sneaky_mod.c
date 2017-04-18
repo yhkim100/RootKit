@@ -21,8 +21,8 @@
 //Grep for "set_pages_ro" and "set_pages_rw" in:
 //      /boot/System.map-`$(uname -r)`
 //      e.g. /boot/System.map-3.13.0.77-generic
-void (*pages_rw)(struct page *page, int numpages) = (void *)0xffffffff81059d90;
-void (*pages_ro)(struct page *page, int numpages) = (void *)0xffffffff81059df0;
+void (*pages_rw)(struct page *page, int numpages) = (void *)0xffffffff8105be20;
+void (*pages_ro)(struct page *page, int numpages) = (void *)0xffffffff8105bdc0;
 
 //This is a pointer to the system call table in memory
 //Defined in /usr/src/linux-source-3.13.0/arch/x86/include/asm/syscall.h
